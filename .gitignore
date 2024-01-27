@@ -7,3 +7,10 @@ dist
 *.egg*
 .DS_Store
 *.zip
+__pycache__/
+build/
+dist/
+venv/
+app.spec/
+flask_log.txt
+snapshot.jpg

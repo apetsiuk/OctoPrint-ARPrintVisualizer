@@ -7,59 +7,109 @@
 $(function() {
     function ArprintvisualizerViewModel(parameters) {
         var self = this;
+
         self.settingsViewModel = parameters[0];
-        self.cam_url=ko.observable();
-        
-        
-        function convertImageToGray(img) {
-            let dst = new cv.Mat();
-            cv.cvtColor(img, dst, cv.COLOR_RGBA2GRAY, 0);
-            return dst;
-        }
+        self.isDetecting = ko.observable(false);
+        self.isErrorDetected = ko.observable(false);
 
         self.onBeforeBinding = function() {
-            self.cam_url(self.settingsViewModel.settings.plugins.ARPrintVisualizer.stream());
-            self.flipH = self.settingsViewModel.settings.plugins.ARPrintVisualizer.flipH();
         }
-        self.onAfterBinding = function() {
-        let imgElement = document.getElementById('ARCam');
-        let src = new cv.Mat(height, width, cv.CV_8UC4);
-        let dst = new cv.Mat(height, width, cv.CV_8UC1);
-        let cap = new cv.VideoCapture(imgElement);
-        const FPS = 30;
-        function processVideo() {
-            try {
-                if (!streaming) {
-                    // clean and stop.
-                    src.delete();
-                    dst.delete();
-                    return;
-                }
-                let begin = Date.now();
-                // start processing.
-                cap.read(src);
-                cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY);
-                cv.imshow('outcanvas', dst);
-                // schedule the next one.
-                let delay = 1000/FPS - (Date.now() - begin);
-                setTimeout(processVideo, delay);
-            } catch (err) {
-                utils.printError(err);
-            }
-            // schedule the first one.
-        }
-        setTimeout(processVideo, 0);
-        
-        };
 
-          
-           
+        self.toggleDetection = function() {
+            self.isDetecting(!self.isDetecting());
+
+            if (self.isDetecting()) {
+                $("#detection").text("Stop Error Detection");
+                $.ajax({
+                    url: "/plugin/ARPrintVisualizer/detection/start",
+                    type: "GET",
+                    dataType: "json",
+                    contentType: "application/json; charset=utf-8",
+                    success: function(data) {
+                        console.log(data);
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
+            } else {
+                $("#detection").text("Start Error Detection");
+                $.ajax({
+                    url: "/plugin/ARPrintVisualizer/detection/stop",
+                    type: "GET",
+                    dataType: "json",
+                    contentType: "application/json; charset=utf-8",
+                    success: function(data) {
+                        console.log(data);
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
+            }
+        }
+
+        self.resume = function() {
+            self.isErrorDetected(false);
+            $.ajax({
+                url: API_BASEURL + "/job",
+                type: "POST",
+                dataType: "json",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify({
+                    command: "pause",
+                    action: "resume"
+                }),
+                success: function(data) {
+                    console.log(data);
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+            });
+        }
+
+        self.patchResume = function() {
+            $.ajax({
+                url: "/plugin/ARPrintVisualizer/correct",
+                type: "GET",
+                dataType: "json",
+                contentType: "application/json; charset=utf-8",
+                success: function(data) {
+                    console.log(data);
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+            });
+            self.isErrorDetected(false);            
+        }
+
+        self.onDataUpdaterPluginMessage = function(plugin, data) {
+            if (plugin != "ARPrintVisualizer") {
+                return;
+            }
+
+            if (data.type == "error") {
+                new PNotify({
+                    title: 'Error Detected',
+                    text: data.error,
+                    type: 'error',
+                    hide: false
+                });
+
+                $("#detection").text("Start Error Detection");
+                self.isDetecting(false);
+                self.isErrorDetected(true);
+            }
+
+        }           
     }
         
   
     OCTOPRINT_VIEWMODELS.push({
         construct: ArprintvisualizerViewModel,
         dependencies: [ "settingsViewModel"],
-        elements: [ "#mjpg_container"]
+        elements: [ "#settings_plugin_ARPrintVisualizer", "#tab_plugin_ARPrintVisualizer"]
     });
 });
