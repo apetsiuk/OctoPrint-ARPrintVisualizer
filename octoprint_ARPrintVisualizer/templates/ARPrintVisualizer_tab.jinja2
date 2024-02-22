@@ -1,4 +1,4 @@
-<img data-bind="attr: {src: 'http://127.0.0.1:27100/stream/' + settingsViewModel.settings.plugins.ARPrintVisualizer.stream()}"></img>
+<img data-bind="attr: {src: 'http://127.0.0.1:27100/stream/' + settingsViewModel.settings.plugins.visualizer.stream()}"></img>
 
 
 
@@ -21,19 +21,19 @@
 jjavkja;ashgd
 <br />
 
-
-<img src="/plugin/ARPrintVisualizer/static/img/pic.png">
+<canvas id="headCanvas" width="1000" height="333"></canvas>
+<canvas id="headCanvas_proc" width="1000" height="333"></canvas>
 
 <div class="span7">
             <h1>{{ _('Model info') }}</h1>
             <p data-bind="html: ui_modelInfo"></p>
 
             <h1>{{ _('Layer info') }}</h1>
-            <p data-bind="html: ui_layerInfo"></p>
+            <p data-bind="value: ui_layerInfo"></p>
 </div>
 
-<p><b>Filename:</b> 'C:/home/file.gcode'</p>
-<p><b>Layer:</b> 5</p>
+<p><b id="filename">Filename:</b></p>
+<p><b id="layer" >Layer: </b></p>
 <p><b>Status:</b> printing/pausing/moving nozzle out/taking a picture/detecting errors</p>
 <p><b>% Similarity:</b> 25</p>
 <p><b>Failure:</b> YES</p>

@@ -36,7 +36,7 @@ arucoParams = cv2.aruco.DetectorParameters_create()
 
 corners, ids, rejected = cv2.aruco.detectMarkers(img_gray, arucoDict, parameters=arucoParams)
 detected_markers = cv2.aruco.drawDetectedMarkers(frame, corners, ids)
-
+print('here1')
 camera_matrix = np.load("calibration_matrix.npy")
 dist_coeffs = np.load("distortion_coefficients.npy")
 
@@ -45,27 +45,27 @@ points = get_rec_points(corners)
 if points is not None:
     for point in points:
         cv2.circle(frame, tuple(point), 4, (0, 0, 255), -1)
-
+    print('here2')
     org_h, org_w = 16.5, 18.5 #in cm
     points_3D = np.array([[-org_w/2, org_h/2, 0], [org_w/2, org_h/2, 0], [org_w/2, -org_h/2, 0], [-org_w/2, -org_h/2, 0]], dtype="double")
-    
+
     points_2D = points.astype('float32')
     points_3D = points_3D.astype('float32')
- 
+
     success, rvecs, tvecs = cv2.solvePnP(points_3D, points_2D, camera_matrix, dist_coeffs)
-    
+
     len = 5 #in cm
     axis = np.float32([[-len/2, -len/2, 0], [-len/2, len/2, 0], [len/2, len/2, 0], [len/2, -len/2, 0],
                         [-len/2, -len/2, len], [-len/2, len/2, len], [len/2, len/2, len],[len/2, -len/2, len]])
 
     imgpts_2d, jac = cv2.projectPoints(axis, rvecs, tvecs, camera_matrix, dist_coeffs)
     imgpts_2d = np.int32(imgpts_2d).reshape(-1, 2)
-
+    print('here3')
     frame = cv2.drawContours(frame, [imgpts_2d[:4]], -1, (255, 0, 0), 2)
     for i, j in zip(range(4), range(4, 8)):
         frame = cv2.line(frame, tuple(imgpts_2d[i]), tuple(imgpts_2d[j]), (255, 0, 0), 2)
     frame = cv2.drawContours(frame, [imgpts_2d[4:]], -1, (255, 0, 0), 2)
-
+    print('here4')
 
     # points = np.float32(points)
     # width = 800
@@ -76,7 +76,7 @@ if points is not None:
     # warped = cv2.warpPerspective(frame, M, (width, height))
 
     # # cv2.imshow("Warped", warped)
-
+print('here5')
 cv2.imshow("Image", frame)
 
 # # Uncomment to save
